@@ -1,19 +1,7 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(docker exec:*)",
-      "mcp__postgres-dev__execute_sql",
-      "mcp__postgres-dev__list_objects",
-      "mcp__postgres-dev__list_schemas",
-      "Bash(pnpm install)",
-      "Bash(pnpm run dev)",
-      "Bash(netstat:*)",
-      "Bash(findstr:*)",
-      "Bash(taskkill:*)"
-    ]
+    "defaultMode": "dontAsk"
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "postgres-dev"
-  ]
+  "enabledMcpjsonServers": ["postgres-dev"]
 }
