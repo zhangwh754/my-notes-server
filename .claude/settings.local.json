@@ -1,7 +1,4 @@
 {
-  "permissions": {
-    "defaultMode": "dontAsk"
-  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": ["postgres-dev"]
 }
