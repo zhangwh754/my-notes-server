@@ -121,21 +121,9 @@ router.get('/:id', async (ctx) => {
       return;
     }
 
-    // Get tags for this note
-    const tagsResult = await query(
-      `SELECT t.id, t.name
-       FROM tags t
-       INNER JOIN note_tags nt ON t.id = nt.tag_id
-       WHERE nt.note_id = $1`,
-      [id]
-    );
-
-    const note = result.rows[0];
-    note.tags = tagsResult.rows;
-
     ctx.body = {
       success: true,
-      data: note,
+      data: result.rows[0],
     };
   } catch (error) {
     ctx.status = 500;
@@ -332,110 +320,6 @@ router.patch('/:id/archive', async (ctx) => {
     ctx.body = {
       success: false,
       error: { message: 'Failed to toggle archive', details: error.message },
-    };
-  }
-});
-
-// Get note tags
-router.get('/:id/tags', async (ctx) => {
-  const { id } = ctx.params;
-
-  try {
-    const result = await query(
-      `SELECT t.id, t.name, t.created_at
-       FROM tags t
-       INNER JOIN note_tags nt ON t.id = nt.tag_id
-       WHERE nt.note_id = $1`,
-      [id]
-    );
-
-    ctx.body = {
-      success: true,
-      data: result.rows,
-    };
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = {
-      success: false,
-      error: { message: 'Failed to fetch note tags', details: error.message },
-    };
-  }
-});
-
-// Add tag to note
-router.post('/:id/tags', async (ctx) => {
-  const { id } = ctx.params;
-  const { tagId } = ctx.request.body;
-
-  if (!tagId) {
-    ctx.status = 400;
-    ctx.body = {
-      success: false,
-      error: { message: 'Tag ID is required' },
-    };
-    return;
-  }
-
-  try {
-    const result = await query(
-      `INSERT INTO note_tags (note_id, tag_id)
-       VALUES ($1, $2)
-       ON CONFLICT (note_id, tag_id) DO NOTHING
-       RETURNING *`,
-      [id, tagId]
-    );
-
-    ctx.status = 201;
-    ctx.body = {
-      success: true,
-      data: { message: 'Tag added to note' },
-    };
-  } catch (error) {
-    if (error.code === '23503') {
-      ctx.status = 400;
-      ctx.body = {
-        success: false,
-        error: { message: 'Invalid note ID or tag ID' },
-      };
-      return;
-    }
-
-    ctx.status = 500;
-    ctx.body = {
-      success: false,
-      error: { message: 'Failed to add tag to note', details: error.message },
-    };
-  }
-});
-
-// Remove tag from note
-router.delete('/:id/tags/:tagId', async (ctx) => {
-  const { id, tagId } = ctx.params;
-
-  try {
-    const result = await query(
-      'DELETE FROM note_tags WHERE note_id = $1 AND tag_id = $2 RETURNING *',
-      [id, tagId]
-    );
-
-    if (result.rows.length === 0) {
-      ctx.status = 404;
-      ctx.body = {
-        success: false,
-        error: { message: 'Tag not found on this note' },
-      };
-      return;
-    }
-
-    ctx.body = {
-      success: true,
-      data: { message: 'Tag removed from note' },
-    };
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = {
-      success: false,
-      error: { message: 'Failed to remove tag from note', details: error.message },
     };
   }
 });

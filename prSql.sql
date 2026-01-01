@@ -55,28 +55,6 @@ CREATE INDEX idx_notes_type_id ON notes(type_id);
 CREATE INDEX idx_notes_created_at ON notes(created_at DESC);
 CREATE INDEX idx_notes_title ON notes USING gin(to_tsvector('simple', title));  -- 全文搜索
 
--- 笔记标签表
-CREATE TABLE tags (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE(user_id, name)
-);
-
--- 笔记-标签关联表 (多对多)
-CREATE TABLE note_tags (
-    note_id BIGINT NOT NULL,
-    tag_id BIGINT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    PRIMARY KEY (note_id, tag_id),
-    FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
-);
-
 -- 笔记附件表
 CREATE TABLE attachments (
     id BIGSERIAL PRIMARY KEY,
