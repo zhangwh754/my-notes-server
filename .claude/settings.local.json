@@ -1,5 +1,0 @@
-{
-  "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["postgres-dev"],
-  "permissions": {}
-}
