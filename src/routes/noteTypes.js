@@ -45,7 +45,7 @@ router.get('/', auth, async (ctx) => {
 
 // Get note type tree
 router.get('/tree', auth, async (ctx) => {
-  const { userId } = ctx.query;
+  const { userId } = ctx.state.user;
 
   try {
     const result = await query('SELECT * FROM get_type_tree($1)', [userId]);
