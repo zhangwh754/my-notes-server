@@ -127,7 +127,15 @@ router.post('/', async (ctx) => {
       `INSERT INTO note_types (user_id, name, description, parent_id, sort_order, color, icon)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [userId, name, description || null, parentId || null, sortOrder || 0, color || null, icon || null]
+      [
+        userId,
+        name,
+        description || null,
+        parentId || null,
+        sortOrder || 0,
+        color || null,
+        icon || null,
+      ]
     );
 
     ctx.status = 201;

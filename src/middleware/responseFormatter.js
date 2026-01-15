@@ -2,7 +2,7 @@
  * Convert snake_case string to camelCase
  */
 const toCamelCase = (str) => {
-  if (typeof str !== "string") return str;
+  if (typeof str !== 'string') return str;
   return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 };
 
@@ -19,7 +19,7 @@ const convertKeysToCamelCase = (obj) => {
   }
 
   // 只处理纯对象
-  if (typeof obj === "object" && obj.constructor === Object) {
+  if (typeof obj === 'object' && obj.constructor === Object) {
     const converted = {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -39,7 +39,7 @@ export const responseFormatter = async (ctx, next) => {
   await next();
 
   // Only transform if there's a body and it's an object or array
-  if (ctx.body && typeof ctx.body === "object") {
+  if (ctx.body && typeof ctx.body === 'object') {
     ctx.body = convertKeysToCamelCase(ctx.body);
   }
 };

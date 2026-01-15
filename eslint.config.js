@@ -1,5 +1,5 @@
-import js from "@eslint/js";
-import prettier from "eslint-plugin-prettier";
+import js from '@eslint/js';
+import prettier from 'eslint-plugin-prettier';
 
 export default [
   js.configs.recommended,
@@ -9,33 +9,33 @@ export default [
     },
     rules: {
       ...prettier.configs.recommended.rules,
-      "prettier/prettier": "error",
+      'prettier/prettier': 'error',
     },
   },
   {
     languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
+      ecmaVersion: 'latest',
+      sourceType: 'module',
       globals: {
-        console: "readonly",
-        process: "readonly",
-        Buffer: "readonly",
-        __dirname: "readonly",
-        __filename: "readonly",
+        console: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
       },
     },
     rules: {
-      "no-unused-vars": [
-        "error",
+      'no-unused-vars': [
+        'error',
         {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
         },
       ],
-      "no-console": "off",
+      'no-console': 'off',
     },
   },
   {
-    ignores: ["node_modules/**", "dist/**", "*.config.js"],
+    ignores: ['node_modules/**', 'dist/**', '*.config.js'],
   },
 ];

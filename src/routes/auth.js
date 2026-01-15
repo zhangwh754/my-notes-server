@@ -22,10 +22,10 @@ router.post('/register', async (ctx) => {
 
   try {
     // Check if user exists
-    const existingUser = await query(
-      'SELECT id FROM users WHERE username = $1 OR email = $2',
-      [username, email]
-    );
+    const existingUser = await query('SELECT id FROM users WHERE username = $1 OR email = $2', [
+      username,
+      email,
+    ]);
 
     if (existingUser.rows.length > 0) {
       ctx.status = 409;
@@ -48,11 +48,9 @@ router.post('/register', async (ctx) => {
     const user = result.rows[0];
 
     // Generate JWT
-    const token = jwt.sign(
-      { userId: user.id, username: user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    );
+    const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
 
     ctx.status = 201;
     ctx.body = {
@@ -120,11 +118,9 @@ router.post('/login', async (ctx) => {
     }
 
     // Generate JWT
-    const token = jwt.sign(
-      { userId: user.id, username: user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    );
+    const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
 
     ctx.body = {
       success: true,

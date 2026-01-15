@@ -1,13 +1,13 @@
-import Koa from "koa";
-import bodyParser from "koa-bodyparser";
-import cors from "koa-cors";
-import dotenv from "dotenv";
+import Koa from 'koa';
+import bodyParser from 'koa-bodyparser';
+import cors from 'koa-cors';
+import dotenv from 'dotenv';
 
-import authRoutes from "./routes/auth.js";
-import noteTypeRoutes from "./routes/noteTypes.js";
-import noteRoutes from "./routes/notes.js";
-import { errorHandler } from "./middleware/errorHandler.js";
-import { responseFormatter } from "./middleware/responseFormatter.js";
+import authRoutes from './routes/auth.js';
+import noteTypeRoutes from './routes/noteTypes.js';
+import noteRoutes from './routes/notes.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { responseFormatter } from './middleware/responseFormatter.js';
 
 dotenv.config();
 
@@ -18,10 +18,10 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(
   bodyParser({
-    enableTypes: ["json", "form"],
-    jsonLimit: "10mb",
-    formLimit: "10mb",
-    textLimit: "10mb",
+    enableTypes: ['json', 'form'],
+    jsonLimit: '10mb',
+    formLimit: '10mb',
+    textLimit: '10mb',
   })
 );
 
@@ -33,8 +33,8 @@ app.use(responseFormatter);
 
 // Health check
 app.use(async (ctx, next) => {
-  if (ctx.path === "/health") {
-    ctx.body = { status: "ok", timestamp: new Date().toISOString() };
+  if (ctx.path === '/health') {
+    ctx.body = { status: 'ok', timestamp: new Date().toISOString() };
     return;
   }
   await next();
@@ -53,7 +53,7 @@ app.use(noteRoutes.allowedMethods());
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 export default app;
