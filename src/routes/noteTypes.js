@@ -1,22 +1,14 @@
 import Router from 'koa-router';
 import { query } from '../config/database.js';
+import { auth, checkOwnership } from '../middleware/auth.js';
 
 const router = new Router({
   prefix: '/api/note-types',
 });
 
-// Get all note types for a user (tree structure)
-router.get('/', async (ctx) => {
-  const { userId } = ctx.query;
-
-  if (!userId) {
-    ctx.status = 400;
-    ctx.body = {
-      success: false,
-      error: { message: 'User ID is required' },
-    };
-    return;
-  }
+// Get all note types for a user
+router.get('/', auth, async (ctx) => {
+  const { userId } = ctx.state.user;
 
   try {
     const result = await query(
@@ -52,17 +44,8 @@ router.get('/', async (ctx) => {
 });
 
 // Get note type tree
-router.get('/tree', async (ctx) => {
+router.get('/tree', auth, async (ctx) => {
   const { userId } = ctx.query;
-
-  if (!userId) {
-    ctx.status = 400;
-    ctx.body = {
-      success: false,
-      error: { message: 'User ID is required' },
-    };
-    return;
-  }
 
   try {
     const result = await query('SELECT * FROM get_type_tree($1)', [userId]);
@@ -81,20 +64,11 @@ router.get('/tree', async (ctx) => {
 });
 
 // Get single note type
-router.get('/:id', async (ctx) => {
+router.get('/:id', auth, checkOwnership('note_types'), async (ctx) => {
   const { id } = ctx.params;
 
   try {
     const result = await query('SELECT * FROM note_types WHERE id = $1', [id]);
-
-    if (result.rows.length === 0) {
-      ctx.status = 404;
-      ctx.body = {
-        success: false,
-        error: { message: 'Note type not found' },
-      };
-      return;
-    }
 
     ctx.body = {
       success: true,
@@ -110,32 +84,31 @@ router.get('/:id', async (ctx) => {
 });
 
 // Create note type
-router.post('/', async (ctx) => {
-  const { userId, name, description, parentId, sortOrder, color, icon } = ctx.request.body;
+router.post('/', auth, async (ctx) => {
+  const { userId } = ctx.state.user;
+  const { name, description, parentId, color, icon } = ctx.request.body;
 
-  if (!userId || !name) {
+  if (!name) {
     ctx.status = 400;
     ctx.body = {
       success: false,
-      error: { message: 'User ID and name are required' },
+      error: { message: 'Name is required' },
     };
     return;
   }
 
   try {
+    // 自动计算 sort_order：同级最大值 + 1
     const result = await query(
       `INSERT INTO note_types (user_id, name, description, parent_id, sort_order, color, icon)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       SELECT $1, $2, $3, $4,
+         COALESCE(
+           (SELECT MAX(sort_order) FROM note_types WHERE user_id = $1 AND parent_id IS NOT DISTINCT FROM $4),
+           0
+         ) + 1,
+         $5, $6
        RETURNING *`,
-      [
-        userId,
-        name,
-        description || null,
-        parentId || null,
-        sortOrder || 0,
-        color || null,
-        icon || null,
-      ]
+      [userId, name, description || null, parentId || null, color || null, icon || null]
     );
 
     ctx.status = 201;
@@ -162,7 +135,7 @@ router.post('/', async (ctx) => {
 });
 
 // Update note type
-router.put('/:id', async (ctx) => {
+router.put('/:id', auth, checkOwnership('note_types'), async (ctx) => {
   const { id } = ctx.params;
   const { name, description, parentId, sortOrder, color, icon } = ctx.request.body;
 
@@ -180,20 +153,20 @@ router.put('/:id', async (ctx) => {
       [name, description, parentId, sortOrder, color, icon, id]
     );
 
-    if (result.rows.length === 0) {
-      ctx.status = 404;
-      ctx.body = {
-        success: false,
-        error: { message: 'Note type not found' },
-      };
-      return;
-    }
-
     ctx.body = {
       success: true,
       data: result.rows[0],
     };
   } catch (error) {
+    if (error.code === '23505') {
+      ctx.status = 409;
+      ctx.body = {
+        success: false,
+        error: { message: 'Note type with this name already exists under the same parent' },
+      };
+      return;
+    }
+
     ctx.status = 500;
     ctx.body = {
       success: false,
@@ -203,26 +176,26 @@ router.put('/:id', async (ctx) => {
 });
 
 // Delete note type
-router.delete('/:id', async (ctx) => {
+router.delete('/:id', auth, checkOwnership('note_types'), async (ctx) => {
   const { id } = ctx.params;
 
   try {
     const result = await query('DELETE FROM note_types WHERE id = $1 RETURNING *', [id]);
-
-    if (result.rows.length === 0) {
-      ctx.status = 404;
-      ctx.body = {
-        success: false,
-        error: { message: 'Note type not found' },
-      };
-      return;
-    }
 
     ctx.body = {
       success: true,
       data: { message: 'Note type deleted successfully' },
     };
   } catch (error) {
+    if (error.code === '23503') {
+      ctx.status = 409;
+      ctx.body = {
+        success: false,
+        error: { message: 'Cannot delete note type that contains notes or sub-types' },
+      };
+      return;
+    }
+
     ctx.status = 500;
     ctx.body = {
       success: false,
@@ -232,7 +205,7 @@ router.delete('/:id', async (ctx) => {
 });
 
 // Get note count for type (including subtypes)
-router.get('/:id/note-count', async (ctx) => {
+router.get('/:id/note-count', auth, checkOwnership('note_types'), async (ctx) => {
   const { id } = ctx.params;
 
   try {
