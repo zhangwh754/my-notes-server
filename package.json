@@ -8,7 +8,11 @@
     "dev": "nodemon ./src/index.js",
     "start": "node ./src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "docker": "docker compose -f ./server/docker/docker-compose.dev.yml up -d"
+    "docker": "docker compose -f ./server/docker/docker-compose.dev.yml up -d",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [
     "koa",
@@ -18,16 +22,21 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.7",
+    "jsonwebtoken": "^9.0.2",
     "koa": "^2.15.0",
-    "koa-router": "^13.0.1",
     "koa-bodyparser": "^4.4.1",
     "koa-cors": "^0.0.16",
-    "pg": "^8.13.1",
-    "dotenv": "^16.4.7",
-    "bcrypt": "^5.1.1",
-    "jsonwebtoken": "^9.0.2"
+    "koa-router": "^13.0.1",
+    "pg": "^8.13.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "nodemon": "^3.1.0",
+    "prettier": "^3.8.0"
   }
 }
