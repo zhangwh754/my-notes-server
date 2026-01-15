@@ -14,13 +14,12 @@ const convertKeysToCamelCase = (obj) => {
     return obj;
   }
 
-  // Handle arrays
   if (Array.isArray(obj)) {
     return obj.map(convertKeysToCamelCase);
   }
 
-  // Handle objects
-  if (typeof obj === "object") {
+  // 只处理纯对象
+  if (typeof obj === "object" && obj.constructor === Object) {
     const converted = {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -31,10 +30,8 @@ const convertKeysToCamelCase = (obj) => {
     return converted;
   }
 
-  // Return primitive values as-is
   return obj;
 };
-
 /**
  * Middleware to format response body with camelCase keys
  */
