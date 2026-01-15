@@ -1,5 +1,9 @@
 node_modules
 
+# Environment files
+.env
+.env.local
+
 # Local settings
 *.local.json
 .claude/settings.local.json
