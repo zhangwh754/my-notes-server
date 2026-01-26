@@ -63,6 +63,107 @@ router.get('/tree', auth, async (ctx) => {
   }
 });
 
+// Get notes for a type including all subtypes
+router.get('/notes', auth, async (ctx) => {
+  const { userId } = ctx.state.user;
+  const { id: typeId, page = 1, limit = 20 } = ctx.query;
+
+  if (!typeId) {
+    ctx.status = 400;
+    ctx.body = {
+      success: false,
+      error: { message: 'Type ID is required' },
+    };
+    return;
+  }
+
+  try {
+    // First, verify that the type belongs to the user
+    const typeCheck = await query('SELECT id FROM note_types WHERE id = $1 AND user_id = $2', [
+      typeId,
+      userId,
+    ]);
+
+    if (typeCheck.rows.length === 0) {
+      ctx.status = 404;
+      ctx.body = {
+        success: false,
+        error: { message: 'Note type not found or does not belong to user' },
+      };
+      return;
+    }
+
+    // Get all type IDs (including subtypes)
+    const typeIdsResult = await query('SELECT type_id FROM get_type_and_subtype_ids($1)', [typeId]);
+    const typeIds = typeIdsResult.rows.map((row) => row.type_id);
+
+    if (typeIds.length === 0) {
+      ctx.body = {
+        success: true,
+        data: {
+          notes: [],
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: 0,
+            totalPages: 0,
+          },
+        },
+      };
+      return;
+    }
+
+    const offset = (page - 1) * limit;
+
+    // Get total count
+    const countResult = await query(
+      `SELECT COUNT(*) as total FROM notes WHERE user_id = $1 AND type_id = ANY($2)`,
+      [userId, typeIds]
+    );
+
+    // Get paginated notes
+    const result = await query(
+      `SELECT
+        n.id,
+        n.user_id,
+        n.type_id,
+        nt.name as type_name,
+        n.title,
+        n.content,
+        n.is_favorite,
+        n.is_archived,
+        n.created_at,
+        n.updated_at,
+        (SELECT COUNT(*) FROM attachments WHERE note_id = n.id) as attachment_count
+      FROM notes n
+      LEFT JOIN note_types nt ON n.type_id = nt.id
+      WHERE n.user_id = $1 AND n.type_id = ANY($2)
+      ORDER BY n.updated_at DESC
+      LIMIT $3 OFFSET $4`,
+      [userId, typeIds, limit, offset]
+    );
+
+    ctx.body = {
+      success: true,
+      data: {
+        notes: result.rows,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: parseInt(countResult.rows[0].total),
+          totalPages: Math.ceil(countResult.rows[0].total / limit),
+        },
+      },
+    };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = {
+      success: false,
+      error: { message: 'Failed to fetch notes', details: error.message },
+    };
+  }
+});
+
 // Get single note type
 router.get('/:id', auth, checkOwnership('note_types'), async (ctx) => {
   const { id } = ctx.params;

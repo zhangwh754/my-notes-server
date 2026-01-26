@@ -149,3 +149,18 @@ BEGIN
     RETURN total_count;
 END;
 $$ LANGUAGE plpgsql;
+
+-- 获取类型及其所有子类型的ID列表
+CREATE OR REPLACE FUNCTION get_type_and_subtype_ids(p_type_id BIGINT)
+RETURNS TABLE (type_id BIGINT) AS $$
+BEGIN
+    RETURN QUERY
+    WITH RECURSIVE type_tree AS (
+        SELECT id FROM note_types WHERE id = p_type_id
+        UNION ALL
+        SELECT nt.id FROM note_types nt
+        INNER JOIN type_tree tt ON nt.parent_id = tt.id
+    )
+    SELECT id FROM type_tree;
+END;
+$$ LANGUAGE plpgsql;
