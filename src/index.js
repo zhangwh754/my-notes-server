@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import noteTypeRoutes from './routes/noteTypes.js';
 import noteRoutes from './routes/notes.js';
+import utilsRoutes from './routes/utils.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { responseFormatter } from './middleware/responseFormatter.js';
 
@@ -49,6 +50,9 @@ app.use(noteTypeRoutes.allowedMethods());
 
 app.use(noteRoutes.routes());
 app.use(noteRoutes.allowedMethods());
+
+app.use(utilsRoutes.routes());
+app.use(utilsRoutes.allowedMethods());
 
 // Start server
 app.listen(PORT, () => {
