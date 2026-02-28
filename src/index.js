@@ -1,64 +1,24 @@
 import Koa from 'koa';
-import bodyParser from 'koa-bodyparser';
-import cors from '@koa/cors';
-import dotenv from 'dotenv';
-
-import authRoutes from './routes/auth.js';
-import noteTypeRoutes from './routes/noteTypes.js';
-import noteRoutes from './routes/notes.js';
-import utilsRoutes from './routes/utils.js';
-import { errorHandler } from './middleware/errorHandler.js';
-import { responseFormatter } from './middleware/responseFormatter.js';
-
-dotenv.config();
+import config from './config.js';
+import { middleware, healthCheck } from './middleware/index.js';
+import { applyRoutes } from './routes/index.js';
 
 const app = new Koa();
-const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
-app.use(
-  bodyParser({
-    enableTypes: ['json', 'form'],
-    jsonLimit: '10mb',
-    formLimit: '10mb',
-    textLimit: '10mb',
-  })
-);
+// Apply middleware
+app.use(middleware.cors);
+app.use(middleware.bodyParser);
+app.use(middleware.errorHandler);
+app.use(middleware.responseFormatter);
+app.use(healthCheck);
 
-// Error handling
-app.use(errorHandler);
-
-// Response formatting (convert snake_case to camelCase)
-app.use(responseFormatter);
-
-// Health check
-app.use(async (ctx, next) => {
-  if (ctx.path === '/health') {
-    ctx.body = { status: 'ok', timestamp: new Date().toISOString() };
-    return;
-  }
-  await next();
-});
-
-// Routes
-app.use(authRoutes.routes());
-app.use(authRoutes.allowedMethods());
-
-app.use(noteTypeRoutes.routes());
-app.use(noteTypeRoutes.allowedMethods());
-
-app.use(noteRoutes.routes());
-app.use(noteRoutes.allowedMethods());
-
-// Utils routes
-app.use(utilsRoutes.routes());
-app.use(utilsRoutes.allowedMethods());
+// Apply routes
+applyRoutes(app);
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+app.listen(config.port, () => {
+  console.log(`Server running on http://localhost:${config.port}`);
+  console.log(`Environment: ${config.env}`);
 });
 
 export default app;
