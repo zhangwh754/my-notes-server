@@ -51,6 +51,7 @@ app.use(noteTypeRoutes.allowedMethods());
 app.use(noteRoutes.routes());
 app.use(noteRoutes.allowedMethods());
 
+// Utils routes
 app.use(utilsRoutes.routes());
 app.use(utilsRoutes.allowedMethods());
 
